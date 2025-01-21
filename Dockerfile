@@ -8,9 +8,6 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-# Copy the .env file (if needed)
-COPY .env .
-
 # Install Maven
 RUN apt-get update && apt-get install -y maven
 
