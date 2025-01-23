@@ -4,8 +4,9 @@ import com.backend.backend.Repository.ClassDataRepository;
 import com.backend.backend.entity.ClassData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ClassDataService {
@@ -18,30 +19,26 @@ public class ClassDataService {
     }
 
     public List<ClassData> getAllClassData() {
-        return classDataRepository.findAll();
+        LocalDateTime fiveSecondsAgo = LocalDateTime.now(ZoneOffset.UTC).minusHours(3);
+                                                                                         
+        return classDataRepository.findByCreatedAtAfter(fiveSecondsAgo);
     }
 
     public ClassData updateClassData(Long id, ClassData updatedClassData) {
-        Optional<ClassData> optionalClassData = classDataRepository.findById(id);
-        if (optionalClassData.isPresent()) {
-            ClassData existingClassData = optionalClassData.get();
-            existingClassData.setPersonName(updatedClassData.getPersonName());
-            existingClassData.setClassName(updatedClassData.getClassName());
-            existingClassData.setProfName(updatedClassData.getProfName());
-            existingClassData.setDescription(updatedClassData.getDescription());
-            existingClassData.setLatitude(updatedClassData.getLatitude());
-            existingClassData.setLongitude(updatedClassData.getLongitude());
-            return classDataRepository.save(existingClassData);
-        } else {
-            throw new RuntimeException("ClassData not found with id: " + id);
-        }
+        return classDataRepository.findById(id)
+                .map(existingClassData -> {
+                    existingClassData.setPersonName(updatedClassData.getPersonName());
+                    existingClassData.setClassName(updatedClassData.getClassName());
+                    existingClassData.setProfName(updatedClassData.getProfName());
+                    existingClassData.setDescription(updatedClassData.getDescription());
+                    existingClassData.setLatitude(updatedClassData.getLatitude());
+                    existingClassData.setLongitude(updatedClassData.getLongitude());
+                    return classDataRepository.save(existingClassData);
+                })
+                .orElseThrow(() -> new RuntimeException("ClassData not found with id: " + id));
     }
 
     public void deleteClassData(Long id) {
-        if (classDataRepository.existsById(id)) {
-            classDataRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("ClassData not found with id: " + id);
-        }
+        classDataRepository.deleteById(id);
     }
 }
